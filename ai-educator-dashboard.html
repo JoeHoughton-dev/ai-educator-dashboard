@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Tools for Educators — Updates Dashboard</title>
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3450;
+      --text: #e8eaf0;
+      --muted: #8892a4;
+      --accent: #6c6fff;
+
+      --chatgpt:    #10a37f;
+      --claude:     #c96442;
+      --gemini:     #4285f4;
+      --notebooklm: #8b5cf6;
+      --gamma:      #f59e0b;
+      --copilot:    #0078d4;
+      --perplexity: #20b2aa;
+
+      --free:      #22c55e;
+      --plus:      #3b82f6;
+      --pro:       #a855f7;
+      --edu:       #f59e0b;
+      --enterprise:#ef4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── Header ───────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #12151f 0%, #1a1d2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .header-title p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .date-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ─── Tool Nav ─────────────────────────────────────────── */
+    .tool-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .tool-nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      gap: 4px;
+    }
+
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover { color: var(--text); }
+
+    .tool-btn.active {
+      color: var(--text);
+      border-bottom-color: var(--active-color, var(--accent));
+    }
+
+    .tool-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dot-color, var(--accent));
+    }
+
+    /* ─── Filter Bar ───────────────────────────────────────── */
+    .filter-bar {
+      max-width: 1400px;
+      margin: 24px auto 0;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tier-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .tier-btn:hover, .tier-btn.active {
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .tier-btn[data-tier="all"].active    { background: var(--accent); }
+    .tier-btn[data-tier="free"].active   { background: var(--free); }
+    .tier-btn[data-tier="plus"].active   { background: var(--plus); }
+    .tier-btn[data-tier="pro"].active    { background: var(--pro); }
+    .tier-btn[data-tier="edu"].active    { background: var(--edu); color: #1a1d27; }
+    .tier-btn[data-tier="enterprise"].active { background: var(--enterprise); }
+
+    /* ─── Main Content ─────────────────────────────────────── */
+    main {
+      max-width: 1400px;
+      margin: 24px auto 48px;
+      padding: 0 32px;
+    }
+
+    /* tool panel */
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    /* ─── Tool Header Card ─────────────────────────────────── */
+    .tool-header-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .tool-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .tool-info h2 { font-size: 1.25rem; font-weight: 700; }
+    .tool-info p  { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+    .update-count {
+      margin-left: auto;
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-align: center;
+    }
+
+    .update-count .num { font-size: 1.5rem; font-weight: 700; }
+    .update-count .lbl { font-size: 0.72rem; color: var(--muted); }
+
+    /* ─── Tier Sections ────────────────────────────────────── */
+    .tier-section { margin-bottom: 28px; }
+
+    .tier-section[data-tier="free"]       { --t-color: var(--free); }
+    .tier-section[data-tier="plus"]       { --t-color: var(--plus); }
+    .tier-section[data-tier="pro"]        { --t-color: var(--pro); }
+    .tier-section[data-tier="edu"]        { --t-color: var(--edu); }
+    .tier-section[data-tier="enterprise"] { --t-color: var(--enterprise); }
+
+    .tier-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tier-pill {
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--t-color) 18%, transparent);
+      color: var(--t-color);
+      border: 1px solid color-mix(in srgb, var(--t-color) 35%, transparent);
+    }
+
+    .tier-line {
+      flex: 1;
+      height: 1px;
+      background: color-mix(in srgb, var(--t-color) 20%, var(--border));
+    }
+
+    /* ─── Update Cards Grid ────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .update-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: transform 0.15s, border-color 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .update-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--t-color);
+      border-radius: 12px 0 0 12px;
+    }
+
+    .update-card:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--t-color) 40%, var(--border));
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t-color);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-tag::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--t-color);
+    }
+
+    .update-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+    .update-card p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    .card-date {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ─── Source Footer ────────────────────────────────────── */
+    .sources-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 20px;
+      margin-top: 16px;
+    }
+
+    .sources-bar summary {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .sources-bar summary::before { content: '▸ '; }
+    .sources-bar[open] summary::before { content: '▾ '; }
+
+    .sources-list {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sources-list a {
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      transition: background 0.15s;
+    }
+
+    .sources-list a:hover { background: color-mix(in srgb, var(--accent) 20%, var(--surface2)); }
+
+    /* ─── Empty state ──────────────────────────────────────── */
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    /* ─── Footer ───────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Responsive ───────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header, .tool-nav, main, .filter-bar { padding-left: 16px; padding-right: 16px; }
+      .tool-header-card { flex-wrap: wrap; }
+      .update-count { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ HEADER ════════════════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="header-title">
+      <h1>AI Tools for Educators — Update Dashboard</h1>
+      <p>Latest feature rollouts across 6 major AI platforms relevant to teaching &amp; learning</p>
+    </div>
+    <div class="date-badge">Feb 8 – Mar 8, 2026</div>
+  </div>
+</header>
+
+<!-- ════ TOOL NAV ══════════════════════════════════════════ -->
+<nav class="tool-nav">
+  <div class="tool-nav-inner">
+    <button class="tool-btn active" data-tool="chatgpt" style="--active-color:var(--chatgpt)">
+      <span class="tool-dot" style="--dot-color:var(--chatgpt)"></span>ChatGPT
+    </button>
+    <button class="tool-btn" data-tool="claude" style="--active-color:var(--claude)">
+      <span class="tool-dot" style="--dot-color:var(--claude)"></span>Claude
+    </button>
+    <button class="tool-btn" data-tool="gemini" style="--active-color:var(--gemini)">
+      <span class="tool-dot" style="--dot-color:var(--gemini)"></span>Gemini
+    </button>
+    <button class="tool-btn" data-tool="notebooklm" style="--active-color:var(--notebooklm)">
+      <span class="tool-dot" style="--dot-color:var(--notebooklm)"></span>NotebookLM
+    </button>
+    <button class="tool-btn" data-tool="gamma" style="--active-color:var(--gamma)">
+      <span class="tool-dot" style="--dot-color:var(--gamma)"></span>Gamma
+    </button>
+    <button class="tool-btn" data-tool="copilot" style="--active-color:var(--copilot)">
+      <span class="tool-dot" style="--dot-color:var(--copilot)"></span>Copilot
+    </button>
+    <button class="tool-btn" data-tool="perplexity" style="--active-color:var(--perplexity)">
+      <span class="tool-dot" style="--dot-color:var(--perplexity)"></span>Perplexity
+    </button>
+  </div>
+</nav>
+
+<!-- ════ FILTER BAR ════════════════════════════════════════ -->
+<div class="filter-bar">
+  <span class="filter-label">Filter by tier:</span>
+  <button class="tier-btn active" data-tier="all">All Tiers</button>
+  <button class="tier-btn" data-tier="free">Free</button>
+  <button class="tier-btn" data-tier="plus">Plus / Basic</button>
+  <button class="tier-btn" data-tier="pro">Pro / Premium</button>
+  <button class="tier-btn" data-tier="edu">Education</button>
+  <button class="tier-btn" data-tier="enterprise">Enterprise</button>
+</div>
+
+<!-- ════ MAIN ══════════════════════════════════════════════ -->
+<main>
+
+  <!-- ══ ChatGPT ══════════════════════════════════════════ -->
+  <div class="tool-panel active" id="panel-chatgpt">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--chatgpt) 15%, var(--surface2))">🤖</div>
+      <div class="tool-info">
+        <h2>ChatGPT</h2>
+        <p>OpenAI · chatgpt.com — Major GPT-5 family expansion with education-focused Study Mode and collaborative tools</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--chatgpt)">9</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Study Tools</div>
+          <h4>Study Mode with Socratic Learning</h4>
+          <p>Free users can access the "Study and Learn" mode. ChatGPT uses Socratic questioning — guiding students with follow-up questions rather than giving direct answers — to build genuine understanding.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Collaboration</div>
+          <h4>Group Chats (up to 20 people)</h4>
+          <p>Invite up to 20 people via link to study together. Group members can message each other and pull ChatGPT in on demand — useful for student study groups and collaborative projects.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Context Window</div>
+          <h4>256K Token Context Window</h4>
+          <p>Total context window extended to 256k tokens (128k input + 128k output) when Thinking mode is manually selected — enabling analysis of very long documents and textbooks.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLUS -->
+    <div class="tier-section" data-tier="plus">
+      <div class="tier-heading">
+        <span class="tier-pill">Plus</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>GPT-5.3 Instant — Everyday Accuracy</h4>
+          <p>Released March 5, 2026. Delivers more accurate answers with richer web search context, reduced unnecessary caveats, and improved conversational flow — great for daily teaching prep and research.</p>
+          <div class="card-date">📅 March 5, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Projects</div>
+          <h4>Living Knowledge Base in Projects</h4>
+          <p>Projects now lets you build a persistent knowledge base by adding sources from Slack, Google Drive, and previous chats. Students and teachers can reuse context across sessions automatically.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Coding</div>
+          <h4>Interactive Code Blocks</h4>
+          <p>Code blocks now allow writing, editing, and previewing code all in one place — a powerful upgrade for computer science teaching and student project work.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Pro</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>GPT-5.4 Thinking — Advanced Reasoning</h4>
+          <p>Fuses advanced reasoning, coding, and agentic workflows in one model. Adds an upfront thinking plan for complex, multi-step tasks — ideal for dissertation support, deep research, and curriculum design.</p>
+          <div class="card-date">📅 March 5, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Research</div>
+          <h4>Prism: AI-Native Research Workspace</h4>
+          <p>Free environment inside ChatGPT for scientific writing. Centralises drafting, references, and real-time co-authoring powered by GPT-5.2 — perfect for academic writing and research papers.</p>
+          <div class="card-date">📅 March 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Edu Plan</div>
+          <h4>o3-pro for Education</h4>
+          <p>Expert evaluations consistently prefer o3-pro in science, education, programming, business, and writing. Available on ChatGPT Edu plan for institutions seeking highest-capability AI.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="tier-section" data-tier="enterprise">
+      <div class="tier-heading">
+        <span class="tier-pill">Enterprise</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Automation</div>
+          <h4>Skills — Reusable Workflow Instructions</h4>
+          <p>Enterprise &amp; Edu orgs can turn proven workflows into Skills — reusable instructions ChatGPT applies automatically. Ideal for standardising feedback templates, report formats, and lesson plan generation across a school or district.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>GPT-5.4 Pro — Highest Capability</h4>
+          <p>For the most demanding institutional workloads — complex research, large-scale content generation, and sophisticated agent tasks. Only available on Enterprise and Pro plans.</p>
+          <div class="card-date">📅 March 5, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes" target="_blank">OpenAI Release Notes</a>
+        <a href="https://help.openai.com/en/articles/10128477-chatgpt-enterprise-edu-release-notes" target="_blank">ChatGPT Enterprise &amp; Edu Notes</a>
+        <a href="https://academy.openai.com/public/clubs/work-users-ynjqu/resources/latest-model" target="_blank">OpenAI Academy – GPT-5.3/5.4</a>
+        <a href="https://www.gend.co/blog/chatgpt-2026-latest-features" target="_blank">ChatGPT 2026 Latest Features</a>
+        <a href="https://www.adsx.com/blog/chatgpt-updates-february-2026" target="_blank">ChatGPT February 2026 Updates</a>
+        <a href="https://releasebot.io/updates/openai/chatgpt" target="_blank">Releasebot – ChatGPT</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══ Claude ═════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-claude">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--claude) 15%, var(--surface2))">✦</div>
+      <div class="tool-info">
+        <h2>Claude</h2>
+        <p>Anthropic · claude.ai — Major model upgrades, sweeping education partnerships, and memory for all users</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--claude)">10</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Memory</div>
+          <h4>Memory for All Users (incl. Free)</h4>
+          <p>Memory from chat history is now available to all Claude users including free tier — Claude remembers context, preferences, and information across conversations without manual reminding.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Commitment</div>
+          <h4>Permanent Ad-Free Experience</h4>
+          <p>Anthropic announced on February 4, 2026 that Claude will remain permanently ad-free across all tiers — ensuring a distraction-free environment for students and educators.</p>
+          <div class="card-date">📅 February 4, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>Claude Sonnet 4.6 — New Default Model</h4>
+          <p>Released February 17, 2026. Now the default on all Free and Pro plans. Features a 1M token context window (beta) — enabling analysis of entire textbooks or curriculum documents in a single session.</p>
+          <div class="card-date">📅 February 17, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Pro / Max</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>Claude Opus 4.6 — 1M Token Context</h4>
+          <p>Launched February 5, 2026. Improved benchmarks, faster responses, agent team capabilities, and adaptive thinking. The 1M token context window allows educators to process an entire year's worth of curriculum material at once.</p>
+          <div class="card-date">📅 February 5, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Productivity</div>
+          <h4>Task Scheduling in Cowork</h4>
+          <p>Create and schedule recurring and on-demand tasks in Claude Cowork. Teachers can set up automated reminders, recurring content generation tasks, and scheduled lesson planning workflows.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Office Integration</div>
+          <h4>Claude in PowerPoint &amp; Excel</h4>
+          <p>Claude is now available as an add-in for PowerPoint, and the Excel add-in has been updated to use Opus 4.6 with native operations like pivot table editing and conditional formatting — great for data-driven teaching materials.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Partnership</div>
+          <h4>CodePath Partnership — CS Education at Scale</h4>
+          <p>Announced February 13, 2026. Claude and Claude Code integrated into computer science education at community colleges, state schools, and HBCUs through CodePath — the largest collegiate CS education provider in the US.</p>
+          <div class="card-date">📅 February 13, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Global Access</div>
+          <h4>Educator Programs Across 60+ Countries</h4>
+          <p>Expanding access through educator programs, nonprofit discounts, and free tier investments. Includes 2,000 Claude Pro licenses for Rwandan educators and AI literacy training for public servants.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">EdTech</div>
+          <h4>Anytime Testing Machine — 1,500 Students</h4>
+          <p>Piloting across 1,500 students in 20 Indian schools (with Pratham and Central Square Foundation), expanding to 100 schools by end of 2026. First deployment of Claude as an autonomous educational assessment tool.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="tier-section" data-tier="enterprise">
+      <div class="tier-heading">
+        <span class="tier-pill">Enterprise</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Purchasing</div>
+          <h4>Self-Serve Enterprise Plans</h4>
+          <p>Any organisation can now purchase an Enterprise plan directly on Anthropic's website — no sales conversation required. Includes access to Claude, Claude Code, and Cowork. Removes friction for schools and districts.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Compliance</div>
+          <h4>Data Residency Controls</h4>
+          <p>New inference_geo parameter lets institutions specify where model inference runs. US-only inference available at 1.1x pricing — critical for schools with data sovereignty requirements.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://claude5.ai/news/claude-opus-46-released-february-2026" target="_blank">Claude Opus 4.6 Release</a>
+        <a href="https://platform.claude.com/docs/en/release-notes/overview" target="_blank">Claude API Release Notes</a>
+        <a href="https://releasebot.io/updates/anthropic/claude" target="_blank">Releasebot – Claude</a>
+        <a href="https://socialprachar.com/blog/claude-ai-model-upgrades-explained-2026-overview" target="_blank">Claude 2026 Overview</a>
+        <a href="https://claudelog.com/claude-news/" target="_blank">ClaudeLog News</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══ Gemini ══════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-gemini">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--gemini) 15%, var(--surface2))">✦</div>
+      <div class="tool-info">
+        <h2>Gemini</h2>
+        <p>Google · gemini.google.com — Deep education integrations at Bett 2026, classroom AI feedback, SAT prep, and Gemini 3.1</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--gemini)">10</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Student Access</div>
+          <h4>Free Gemini Upgrade for Students (4 Countries)</h4>
+          <p>Free upgrade to Gemini Pro for students over 18 in Indonesia, Japan, the UK, and Brazil through July 2026 — covering exam prep, writing help, and homework assistance at no cost.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Learning</div>
+          <h4>Practice Quiz Generator</h4>
+          <p>Generate custom practice quizzes from uploaded PDFs, class notes, or any topic. Includes hints, explanations for right/wrong answers, and a summary at the end. Available to users 18+ and qualifying Workspace Education plans.</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">SAT Prep</div>
+          <h4>SAT Preparation with Princeton Review</h4>
+          <p>Gemini now offers free SAT practice tests in partnership with Princeton Review — helping students prepare for college entrance exams directly within the Gemini app.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLUS -->
+    <div class="tier-section" data-tier="plus">
+      <div class="tier-heading">
+        <span class="tier-pill">Google AI Plus</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">New Model</div>
+          <h4>Gemini 3.1 Pro — Enhanced Intelligence</h4>
+          <p>Significantly improved intelligence for solving complex problems. Available on Google AI Plus for demanding workflows including lesson planning, research synthesis, and complex student support.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Creative Tools</div>
+          <h4>Lyria 3 Music Generation</h4>
+          <p>Generate custom instrumentals for class presentations — from concept jingles to lo-fi study beats — just by describing what you want. Available in English, Japanese, Korean, Hindi, Spanish, Portuguese, German, and French.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Google AI Ultra</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Reasoning</div>
+          <h4>Deep Think Mode for Science &amp; Engineering</h4>
+          <p>Gemini 3.1's specialized reasoning mode designed for modern science and engineering problems. Ultra subscribers get access to the highest-capability reasoning for complex STEM curriculum design and research.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Classroom</div>
+          <h4>AI-Suggested Feedback for Written Assignments</h4>
+          <p>Educators generate Gemini-drafted feedback tailored to a student's work, grade level, and focus area directly in Google Classroom. Rolling out from March 5, 2026 — dramatically reducing teacher marking time.</p>
+          <div class="card-date">📅 March 5, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Classroom</div>
+          <h4>Audio &amp; Video Recording in Classroom</h4>
+          <p>Educators and students can now record and attach audio, video, and screen recordings directly in Google Classroom for assignments, announcements, and feedback — no third-party tools needed.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Dashboard</div>
+          <h4>Revamped Classroom Homepage</h4>
+          <p>New actionable dashboard with student engagement metrics for school leaders, class insights for educators, and upcoming deadlines for students — all in one view.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Free Model Access</div>
+          <h4>Gemini 3 Pro Free for Education</h4>
+          <p>Gemini for Education plans now include access to Gemini 3 Pro — Google's most intelligent model — free of charge, along with AI-generated infographics, slide decks, and NotebookLM integration.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://blog.google/products-and-platforms/products/education/bett-2026-gemini-classroom-updates/" target="_blank">Google Blog – Bett 2026 Education</a>
+        <a href="https://blog.google/innovation-and-ai/products/gemini-app/gemini-drop-february-2026/" target="_blank">Gemini February Drop</a>
+        <a href="https://workspaceupdates.googleblog.com/2026/02/gemini-in-workspace-education.html" target="_blank">Workspace Updates – Education</a>
+        <a href="https://blog.google/innovation-and-ai/products/google-ai-updates-february-2026/" target="_blank">Google AI – February Announcements</a>
+        <a href="https://gemini.google/release-notes/" target="_blank">Gemini Release Notes</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══ NotebookLM ══════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-notebooklm">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--notebooklm) 15%, var(--surface2))">📓</div>
+      <div class="tool-info">
+        <h2>NotebookLM</h2>
+        <p>Google Labs · notebooklm.google.com — Rapid evolution into a full-stack educational platform with Gemini 3 backbone</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--notebooklm)">11</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">AI Upgrade</div>
+          <h4>Powered by Gemini 3</h4>
+          <p>NotebookLM's AI backbone upgraded to Gemini 3, bringing significantly improved reasoning, multimodal understanding, and more reliable educational outputs — especially on dense academic texts.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Study Tools</div>
+          <h4>Flashcards &amp; Quizzes with Explain Button</h4>
+          <p>Auto-generate or customise flashcards by number, difficulty, and topic. Both flashcards and quizzes include an "explain" button that gives detailed overviews with citations back to source material.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Audio</div>
+          <h4>Interactive Audio Overviews</h4>
+          <p>New Interactive Mode lets students "raise their hand" during Audio Overviews — interrupt the AI hosts mid-discussion, ask a question, and jump back into the flow. Turns passive listening into active tutoring.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Video</div>
+          <h4>Video Overviews with Visual Slides</h4>
+          <p>AI hosts now generate Video Overviews where they discuss your material while presenting relevant visual slides — a dynamic primer for students or a quick review tool for revision.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Presentations</div>
+          <h4>Slide Decks with PPTX Export</h4>
+          <p>Generate presentation decks from your sources and export to PPTX for editing. Slide-by-slide editing lets you correct one slide without regenerating the whole deck. Google Slides export coming soon.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Data</div>
+          <h4>Data Tables from Documents</h4>
+          <p>Ask NotebookLM to scan uploaded documents (transcripts, papers, reports) and synthesise specific variables into a structured data table — bridging the gap for quantitative research and evidence-based teaching.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Research</div>
+          <h4>Deep Research — Autonomous Web Search</h4>
+          <p>NotebookLM can now actively search the web to build a bibliography. Give it a topic, it creates a research plan, searches hundreds of quality sources, and compiles a citation-backed report.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Import</div>
+          <h4>Faster YouTube Import</h4>
+          <p>Import a single YouTube video, an entire playlist, or multiple videos from the same page in one step — great for building resource libraries from educational YouTube channels.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">LMS Integration</div>
+          <h4>Canvas &amp; Schoology Integration via Gemini LTI</h4>
+          <p>Teachers can create and assign Notebooks directly inside Canvas by Instructure and PowerSchool Schoology using Gemini LTI — bringing NotebookLM into the LMS without switching platforms.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Classroom</div>
+          <h4>Create Notebooks from Google Classroom</h4>
+          <p>Create a NotebookLM notebook directly from Google Classroom. Pull in all assigned resources — slide decks, reading passages, study guides — with one click, eliminating manual uploads.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Moodle</div>
+          <h4>Gemini LTI Support for Moodle (Coming Soon)</h4>
+          <p>NotebookLM and the Gemini app will soon be available directly inside Moodle via Gemini LTI — expanding AI tools to the world's most widely deployed open-source LMS.</p>
+          <div class="card-date">📅 Announced Feb 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://blog.google/products-and-platforms/products/education/bett-2026-gemini-classroom-updates/" target="_blank">Google Blog – Bett 2026</a>
+        <a href="https://blog.google/innovation-and-ai/models-and-research/google-labs/notebooklm-student-features/" target="_blank">NotebookLM Student Features</a>
+        <a href="https://www.techlearning.com/news/6-new-features-added-to-google-notebooklm" target="_blank">Tech &amp; Learning – 6 New Features</a>
+        <a href="https://canadiantechnologymagazine.com/notebooklm-upgrades-2026-data-gemini-research/" target="_blank">Canadian Tech Magazine – 2026 Upgrades</a>
+        <a href="https://www.chrmbook.com/notebooklm-advanced-features-teachers/" target="_blank">NotebookLM for Teachers</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══ Gamma ═══════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-gamma">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--gamma) 15%, var(--surface2))">γ</div>
+      <div class="tool-info">
+        <h2>Gamma</h2>
+        <p>Gamma.app · gamma.app — Gamma 3.0 transforms from presentation tool into an AI visual storytelling platform</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--gamma)">6</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Platform</div>
+          <h4>Gamma 3.0 — Visual Storytelling Platform</h4>
+          <p>The biggest update ever to Gamma. Introduces an AI design partner that turns raw ideas into intelligent, visually stunning communication — covering decks, docs, websites, and social content from one tool.</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">AI Agent</div>
+          <h4>Gamma Agent — AI Design Partner</h4>
+          <p>Agent researches topics and pulls in web sources and citations, incorporates links/screenshots, restyles entire decks on request, and reviews &amp; improves your content. Available on all plans including Free (limited credits).</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Diagrams</div>
+          <h4>Smart Diagrams — Idea to Visual Instantly</h4>
+          <p>Write an idea and Gamma generates the diagram automatically — no wrestling with shapes and arrows. Turn complex educational concepts into clear visual stories for students.</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLUS -->
+    <div class="tier-section" data-tier="plus">
+      <div class="tier-heading">
+        <span class="tier-pill">Plus — $8/mo</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Images</div>
+          <h4>Advanced AI Image Generation</h4>
+          <p>Generate and edit images directly within presentations using Flux Fast and Nano Banana Pro (cinematic HD). Create custom visuals for lessons without leaving Gamma — on Plus and above.</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Pro — $15/mo</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Branding</div>
+          <h4>Custom Branding, Analytics &amp; API Access</h4>
+          <p>Pro adds custom branding for school/institution presentations, detailed analytics on audience engagement, API access for automation, and up to 10 custom domains — ideal for schools with established visual identity.</p>
+          <div class="card-date">📅 February 2026 (pricing update)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO ULTRA -->
+    <div class="tier-section" data-tier="enterprise">
+      <div class="tier-heading">
+        <span class="tier-pill">Ultra (Enterprise)</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Early Access</div>
+          <h4>Studio Mode — Cinematic Full-Image Cards</h4>
+          <p>Early access feature that generates full image cards and social-ready visuals for maximum cinematic effect. Ultra subscribers get access to most advanced AI models, 100 custom domains, and all early access features.</p>
+          <div class="card-date">📅 Early 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://gamma.app/insights/introducing-gamma-3-0" target="_blank">Gamma 3.0 Announcement</a>
+        <a href="https://meetgamma.canny.io/changelog" target="_blank">Gamma Changelog</a>
+        <a href="https://max-productive.ai/ai-tools/gamma/" target="_blank">Gamma Review 2026</a>
+        <a href="https://textify.ai/gamma-ai-review-2026/" target="_blank">Textify – Gamma 2026</a>
+        <a href="https://nerdleveltech.com/the-2026-guide-to-ai-presentation-makers-gamma-tome-beautifulai-canva" target="_blank">2026 Guide to AI Presentation Makers</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══ Copilot ═════════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-copilot">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--copilot) 15%, var(--surface2))">⊞</div>
+      <div class="tool-info">
+        <h2>Microsoft Copilot</h2>
+        <p>Microsoft · copilot.microsoft.com — 36 new features in February 2026, major Bett education announcements, and agent-first productivity</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--copilot)">10</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Chat</div>
+          <h4>Select Text for Focused Follow-Up</h4>
+          <p>Highlight specific text from a Copilot response and click "Ask Copilot" for targeted follow-up questions — eliminating overly broad answers and letting students drill into exactly the concept they need.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Mobile</div>
+          <h4>Copilot Mobile Widgets &amp; Action Button</h4>
+          <p>Widgets bring Microsoft 365 Copilot to Home and Lock screens. One tap starts a chat, activates voice conversation, or opens the camera — giving students AI access on the go between classes.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLUS (M365 Personal/Family) -->
+    <div class="tier-section" data-tier="plus">
+      <div class="tier-heading">
+        <span class="tier-pill">Microsoft 365 Personal / Family</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Outlook</div>
+          <h4>One-Click Meeting Scheduling from Email</h4>
+          <p>Click "Schedule with Copilot" on any email thread — Copilot finds available times, books rooms, drafts agendas, and sends invites in one guided chat flow. Rolled out February (new Outlook) and March (classic Outlook).</p>
+          <div class="card-date">📅 February–March 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Meetings</div>
+          <h4>Meeting Recaps with Visuals</h4>
+          <p>Recaps now include visuals shown during meetings, and custom recap templates match how your team works — perfect for teachers reviewing lesson observations or PD session notes.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO / M365 Copilot -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Microsoft 365 Copilot</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">AI Model</div>
+          <h4>GPT-5.2 Reasoning + Thinking Mode Selector</h4>
+          <p>GPT-5.2 now powers Copilot with better answer quality across all M365 apps. New Thinking Mode selector lets users choose how Copilot approaches complex tasks — from quick answers to deep reasoning.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Search</div>
+          <h4>Copilot Chat + Search Integration</h4>
+          <p>Copilot Chat now integrates with Copilot Search — explore search results and interact with Copilot simultaneously, avoiding tool-switching during research. Rolling out March 2026.</p>
+          <div class="card-date">📅 March 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">SharePoint</div>
+          <h4>SharePoint Site &amp; List Integration in Chat</h4>
+          <p>Type "/" in Copilot Chat to pull in SharePoint lists or sites directly — bringing structured school/district data (timetables, resource libraries, student info) into AI conversations. Rolling out March 2026.</p>
+          <div class="card-date">📅 March 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Teaching</div>
+          <h4>Teach Feature — Standards-Aligned Lesson Plans</h4>
+          <p>Input topic and grade level to generate complete standards-aligned lesson plans. Supports standards from 35+ countries. Adjust reading levels, tone, difficulty, and differentiate for diverse learners through simple prompts.</p>
+          <div class="card-date">📅 Rolling out early 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Minecraft</div>
+          <h4>Minecraft Education Lesson Plans via Copilot</h4>
+          <p>Teachers can use Copilot to generate Minecraft Education lesson plans (preview February 2026) and full unit plans (Spring 2026). An Hour of AI partnership with Code.org turns AI learning into interactive gameplay.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Academic Integrity</div>
+          <h4>Assignment-Level AI Controls</h4>
+          <p>New controls allow educators to define expected AI use at the assignment level — addressing academic integrity and governance concerns. Previewing from February 2026.</p>
+          <div class="card-date">📅 February 2026 (Bett)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="tier-section" data-tier="enterprise">
+      <div class="tier-heading">
+        <span class="tier-pill">Enterprise / District</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">LMS</div>
+          <h4>Copilot Embedded in LMS (Spring 2026)</h4>
+          <p>Coming Spring 2026: Copilot embedded directly inside learning management systems. Teachers create content within their LMS courses rather than switching between platforms — a major workflow improvement for enterprise education deployments.</p>
+          <div class="card-date">📅 Spring 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Compliance</div>
+          <h4>Microsoft Purview DLP for Copilot</h4>
+          <p>Expanded Data Loss Prevention prevents Copilot from processing labelled sensitive files wherever they're stored — critical for schools and districts with FERPA/safeguarding compliance requirements.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://techcommunity.microsoft.com/blog/microsoft365copilotblog/what%E2%80%99s-new-in-microsoft-365-copilot--february-2026/4496489" target="_blank">Microsoft – What's New Feb 2026</a>
+        <a href="https://www.edtechinnovationhub.com/news/bett-2026-microsoft-outlines-major-ai-copilot-and-classroom-updates-across-education-stack" target="_blank">EdTech Innovation Hub – Bett 2026</a>
+        <a href="https://www.hubsite365.com/en-ww/crm-pages/microsoft-365-copilot-february-2026-updates-36-new-features-you-must-know.htm" target="_blank">Microsoft 365 Copilot – 36 New Features</a>
+        <a href="https://www.educatorstechnology.com/2026/02/microsoft-copilot-for-education.html" target="_blank">Educators Technology – Copilot Guide</a>
+        <a href="https://empathy-technologies.com/microsoft-copilot-february-2026-updates/" target="_blank">Empathy Technologies – Feb Updates</a>
+      </div>
+    </details>
+  </div>
+
+
+  <!-- ══ Perplexity ══════════════════════════════════════════ -->
+  <div class="tool-panel" id="panel-perplexity">
+    <div class="tool-header-card">
+      <div class="tool-logo" style="background:color-mix(in srgb, var(--perplexity) 15%, var(--surface2))">⊕</div>
+      <div class="tool-info">
+        <h2>Perplexity</h2>
+        <p>Perplexity AI · perplexity.ai — Answer engine evolving into a full agentic research platform with education-focused Learn Mode</p>
+      </div>
+      <div class="update-count">
+        <div class="num" style="color:var(--perplexity)">8</div>
+        <div class="lbl">updates</div>
+      </div>
+    </div>
+
+    <!-- FREE -->
+    <div class="tier-section" data-tier="free">
+      <div class="tier-heading">
+        <span class="tier-pill">Free</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Learning</div>
+          <h4>Learn Mode — Now Available to Everyone</h4>
+          <p>Learn Mode is now free via the "+" dropdown in Perplexity's input bar on Web. Instead of instant answers, it provides step-by-step guided understanding with Socratic questions and hints — designed to build genuine comprehension for any topic.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Memory</div>
+          <h4>Enhanced Memory Engine (95% Recall)</h4>
+          <p>Memory upgraded to recall important information in 95% of cases (up from 77%), while making half as many irrelevant memories. Perplexity now maintains far more accurate context about a student's or teacher's ongoing work and preferences.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Browser</div>
+          <h4>Comet iOS Browser — Launching March 11</h4>
+          <p>Perplexity's AI-native Comet browser arrives on iOS March 11, 2026 — bringing AI-powered search and research directly into the browser experience for students researching on mobile.</p>
+          <div class="card-date">📅 March 11, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLUS (Pro) -->
+    <div class="tier-section" data-tier="plus">
+      <div class="tier-heading">
+        <span class="tier-pill">Pro — $20/mo</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Research</div>
+          <h4>Deep Research Upgrades</h4>
+          <p>Deep Research — Perplexity's autonomous multi-step research agent — has been significantly upgraded with improved source quality, better synthesis, and more auditable citations. Ideal for academic literature reviews and lesson preparation.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Finance &amp; Data</div>
+          <h4>Finance Mode — More Auditable</h4>
+          <p>Finance research mode now provides more transparent, auditable sources — useful for economics and business education classes requiring cited, verifiable data from financial reports and news.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO (Max) -->
+    <div class="tier-section" data-tier="pro">
+      <div class="tier-heading">
+        <span class="tier-pill">Max — $200/mo</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Agentic AI</div>
+          <h4>Perplexity Computer — Agentic Task Runner</h4>
+          <p>Launched February 25, 2026. A full agentic AI system that takes a goal, breaks it into steps, and runs them across 19 different AI models autonomously. Max-tier only — capable of complex multi-model research pipelines for institutional research tasks.</p>
+          <div class="card-date">📅 February 25, 2026</div>
+        </div>
+        <div class="update-card">
+          <div class="card-tag">Models</div>
+          <h4>Model Council — 19 AI Models</h4>
+          <p>Perplexity Computer orchestrates across an expanded council of 19 top AI models — automatically selecting the best model for each step of a complex research or analysis task, available to Max subscribers.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDU -->
+    <div class="tier-section" data-tier="edu">
+      <div class="tier-heading">
+        <span class="tier-pill">Education</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">University</div>
+          <h4>University Partnerships &amp; Education Pricing</h4>
+          <p>Perplexity is expanding through university partnerships and a dedicated education pricing tier — designed around academic research workflows for students and faculty at partner institutions.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="tier-section" data-tier="enterprise">
+      <div class="tier-heading">
+        <span class="tier-pill">Enterprise Pro/Max</span>
+        <div class="tier-line"></div>
+      </div>
+      <div class="cards-grid">
+        <div class="update-card">
+          <div class="card-tag">Admin</div>
+          <h4>Granular Admin Controls for Organisations</h4>
+          <p>Admins can now configure member access to specific features — including API access, organisation-wide Spaces list visibility, and which AI models are available to members. Enterprise Pro: $40/seat/mo · Enterprise Max: $325/seat/mo.</p>
+          <div class="card-date">📅 February 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <details class="sources-bar">
+      <summary>Sources</summary>
+      <div class="sources-list">
+        <a href="https://www.perplexity.ai/changelog" target="_blank">Perplexity Official Changelog</a>
+        <a href="https://releasebot.io/updates/perplexity-ai" target="_blank">Releasebot – Perplexity</a>
+        <a href="https://theagencyjournal.com/perplexitys-february-2026-sizzle-fresh-updates-that-pack-real-punch/" target="_blank">February 2026 Updates</a>
+        <a href="https://techcrunch.com/2026/02/27/perplexitys-new-computer-is-another-bet-that-users-need-many-ai-models/" target="_blank">TechCrunch – Perplexity Computer</a>
+        <a href="https://www.educatorstechnology.com/2026/02/perplexity-ai-for-research.html" target="_blank">Educators Technology – Perplexity for Research</a>
+        <a href="https://www.perplexity.ai/help-center/en/articles/11187416-which-perplexity-subscription-plan-is-right-for-you" target="_blank">Perplexity Subscription Plans</a>
+      </div>
+    </details>
+  </div>
+
+</main>
+
+<footer>
+  Data current to March 8, 2026 · Sources linked above each tool section · Dashboard auto-generated for educator use
+</footer>
+
+<!-- ════ JAVASCRIPT ════════════════════════════════════════ -->
+<script>
+  // ── Tool Tab Switching ────────────────────────────────────
+  const toolBtns   = document.querySelectorAll('.tool-btn');
+  const toolPanels  = document.querySelectorAll('.tool-panel');
+
+  toolBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tool = btn.dataset.tool;
+      toolBtns.forEach(b => b.classList.remove('active'));
+      toolPanels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + tool).classList.add('active');
+      activeTiers = new Set(['all']);
+      tierBtns.forEach(b => b.classList.toggle('active', b.dataset.tier === 'all'));
+      applyTierFilter();
+    });
+  });
+
+  // ── Tier Filtering (multi-select) ────────────────────────
+  const tierBtns = document.querySelectorAll('.tier-btn');
+  let activeTiers = new Set(['all']);
+
+  function applyTierFilter() {
+    const activePanel = document.querySelector('.tool-panel.active');
+    if (!activePanel) return;
+    const showAll = activeTiers.has('all');
+    activePanel.querySelectorAll('.tier-section').forEach(sec => {
+      sec.style.display = (showAll || activeTiers.has(sec.dataset.tier)) ? '' : 'none';
+    });
+  }
+
+  tierBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tier = btn.dataset.tier;
+      if (tier === 'all') {
+        activeTiers = new Set(['all']);
+      } else {
+        activeTiers.delete('all');
+        if (activeTiers.has(tier)) {
+          activeTiers.delete(tier);
+          if (activeTiers.size === 0) activeTiers.add('all'); // nothing left → reset to all
+        } else {
+          activeTiers.add(tier);
+        }
+      }
+      tierBtns.forEach(b => b.classList.toggle('active', activeTiers.has(b.dataset.tier)));
+      applyTierFilter();
+    });
+  });
+
+  // ── Daily Auto-Refresh ────────────────────────────────────
+  // RSS feeds (via rss2json.com CORS proxy, free tier)
+  const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const FEEDS = {
+    chatgpt:    'https://openai.com/news/rss.xml',
+    claude:     'https://www.anthropic.com/rss.xml',
+    gemini:     'https://blog.google/products/gemini/rss/',
+    notebooklm: 'https://blog.google/technology/ai/rss/',
+    copilot:    'https://techcommunity.microsoft.com/plugins/custom/microsoft/o365/rss-board-messages?board=microsoft365copilotblog',
+    perplexity: 'https://blog.perplexity.ai/rss',
+  };
+
+  const STORAGE_KEY_DATE    = 'aiDash_lastRefreshDate';
+  const STORAGE_KEY_CACHE   = 'aiDash_feedCache';
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // Inject CSS for live cards
+  const liveStyle = document.createElement('style');
+  liveStyle.textContent = `
+    .live-section { margin-bottom: 28px; }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #22c55e;
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px; padding: 2px 10px; margin-left: 8px;
+    }
+    .live-badge::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#22c55e; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .refresh-bar {
+      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 10px; padding: 10px 18px; margin-bottom: 20px;
+      font-size: 0.8rem; color: #22c55e; display: flex; align-items: center; gap: 10px;
+    }
+    .refresh-bar.error { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.25); color:#ef4444; }
+    .refresh-bar.cached { background:rgba(108,111,255,0.08); border-color:rgba(108,111,255,0.25); color:#8892a4; }
+    .live-card { background:var(--surface); border:1px solid rgba(34,197,94,0.3); border-radius:12px; padding:16px 20px; position:relative; overflow:hidden; }
+    .live-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:#22c55e; border-radius:12px 0 0 12px; }
+    .live-card h4 { font-size:0.9rem; font-weight:600; margin-bottom:6px; line-height:1.4; }
+    .live-card p  { font-size:0.78rem; color:var(--muted); line-height:1.6; }
+    .live-card a  { color:var(--accent); text-decoration:none; }
+    .live-card a:hover { text-decoration:underline; }
+    .live-card .card-date { font-size:0.7rem; color:var(--muted); margin-top:8px; }
+    .live-cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+    .fetching-msg { font-size:0.82rem; color:var(--muted); padding:8px 0; }
+  `;
+  document.head.appendChild(liveStyle);
+
+  async function fetchFeed(tool, url) {
+    const apiUrl = RSS2JSON + encodeURIComponent(url) + '&count=6';
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error('Feed error');
+    return data.items || [];
+  }
+
+  function itemToCard(item) {
+    const title = item.title || 'Untitled';
+    const desc  = item.description
+      ? item.description.replace(/<[^>]+>/g, '').slice(0, 180).trim() + '…'
+      : '';
+    const date  = item.pubDate ? item.pubDate.slice(0, 10) : '';
+    const link  = item.link || '#';
+    return `
+      <div class="live-card">
+        <h4><a href="${link}" target="_blank" rel="noopener">${title}</a></h4>
+        ${desc ? `<p>${desc}</p>` : ''}
+        <div class="card-date">📅 ${date}</div>
+      </div>`;
+  }
+
+  function insertLiveSection(panelId, html, source) {
+    const panel = document.getElementById('panel-' + panelId);
+    if (!panel) return;
+    // Remove existing live section if any
+    panel.querySelector('.live-section')?.remove();
+    const section = document.createElement('div');
+    section.className = 'live-section';
+    section.innerHTML = `
+      <div class="tier-heading">
+        <span class="tier-pill" style="--t-color:#22c55e;background:rgba(34,197,94,0.12);color:#22c55e;border-color:rgba(34,197,94,0.3)">
+          Latest from official blog
+        </span>
+        <span class="live-badge">Live</span>
+        <div class="tier-line" style="background:rgba(34,197,94,0.2)"></div>
+      </div>
+      <div class="live-cards-grid">${html}</div>`;
+    panel.insertBefore(section, panel.children[1]); // after header card
+  }
+
+  function showRefreshBar(status, text) {
+    document.querySelectorAll('.refresh-bar').forEach(el => el.remove());
+    const bar = document.createElement('div');
+    bar.className = 'refresh-bar ' + status;
+    bar.textContent = text;
+    document.querySelector('main').insertAdjacentElement('afterbegin', bar);
+  }
+
+  async function refreshAllFeeds() {
+    showRefreshBar('', '⟳ Fetching latest posts from official blogs…');
+    const cache = {};
+    let anySuccess = false;
+
+    await Promise.allSettled(
+      Object.entries(FEEDS).map(async ([tool, url]) => {
+        try {
+          const items = await fetchFeed(tool, url);
+          if (items.length) {
+            cache[tool] = items;
+            const cardsHtml = items.map(itemToCard).join('');
+            insertLiveSection(tool, cardsHtml);
+            anySuccess = true;
+          }
+        } catch (e) {
+          // silently skip failed feeds
+        }
+      })
+    );
+
+    if (anySuccess) {
+      localStorage.setItem(STORAGE_KEY_DATE,  todayStr);
+      localStorage.setItem(STORAGE_KEY_CACHE, JSON.stringify(cache));
+      showRefreshBar('', `✓ Live updates fetched — ${new Date().toLocaleTimeString()}`);
+    } else {
+      showRefreshBar('error', '⚠ Could not reach feed servers. Showing curated research below.');
+    }
+  }
+
+  function restoreFromCache(cache) {
+    Object.entries(cache).forEach(([tool, items]) => {
+      if (items && items.length) {
+        const cardsHtml = items.map(itemToCard).join('');
+        insertLiveSection(tool, cardsHtml);
+      }
+    });
+    showRefreshBar('cached', `ℹ Live updates loaded from today's cache — opens fresh tomorrow`);
+  }
+
+  // ── Startup logic ─────────────────────────────────────────
+  (function init() {
+    applyTierFilter();
+
+    const lastDate  = localStorage.getItem(STORAGE_KEY_DATE);
+    const rawCache  = localStorage.getItem(STORAGE_KEY_CACHE);
+
+    if (lastDate === todayStr && rawCache) {
+      // Already refreshed today — restore from cache
+      try { restoreFromCache(JSON.parse(rawCache)); } catch(e) {}
+    } else {
+      // First open today (or ever) — fetch fresh data
+      refreshAllFeeds();
+    }
+  })();
+</script>
+
+</body>
+</html>
